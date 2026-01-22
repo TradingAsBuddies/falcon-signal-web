@@ -8,7 +8,6 @@ services:
       - "5000:5000"
     volumes:
       - ./data:/app/data  # Persistent cache storage
-      - /home/davdunc/src/sangre-signal:/home/davdunc/src/sangre-signal  # Mount sangre-signal source
     environment:
       - FLASK_ENV=production
       - PORT=5000
