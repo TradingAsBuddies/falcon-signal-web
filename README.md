@@ -1,6 +1,8 @@
-# Sangre Signal Web Interface
+# falcon-signal-web
 
-A web-based interface for the [sangre-signal](https://github.com/anomalyco/sangre-signal) stock analysis tool. This containerized application provides a user-friendly web interface and API for analyzing stocks for various risk factors.
+A container that runs a web-based front end for sangre-signal project. This is part of the [Falcon](https://github.com/TradingAsBuddies/falcon) project and provides a web-based interface for the [sangre-signal](https://github.com/anomalyco/sangre-signal) stock analysis tool. This containerized application provides a user-friendly web interface and API for analyzing stocks for various risk factors.
+
+![Build and Test Docker Container](https://github.com/TradingAsBuddies/falcon-signal-web/actions/workflows/docker-build.yml/badge.svg)
 
 ## Features
 
@@ -20,9 +22,23 @@ A web-based interface for the [sangre-signal](https://github.com/anomalyco/sangr
 
 ### Installation
 
-1. **Clone or navigate to the project directory**:
+#### Option 1: Using GitHub Container Registry
+
+1. **Pull and run the container**:
    ```bash
-   cd ~/src/sangre-signal-web
+   docker run -d -p 5000:5000 ghcr.io/tradingasbuddies/falcon-signal-web:latest
+   ```
+
+2. **Access the application**:
+   - Web Interface: http://localhost:5000
+   - API Status: http://localhost:5000/api/status
+
+#### Option 2: Build from Source
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/TradingAsBuddies/falcon-signal-web.git
+   cd falcon-signal-web
    ```
 
 2. **Build and run with Docker Compose**:
