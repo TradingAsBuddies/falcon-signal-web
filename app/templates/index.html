@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Sangre Signal - Stock Analysis{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-search"></i> Stock Analysis
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.analyze') }}" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.tickers.id }}" class="form-label">
+                            <i class="fas fa-chart-line"></i> Stock Tickers
+                        </label>
+                        {{ form.tickers(class="form-control form-control-lg", 
+                                     placeholder="AAPL, GOOG, MSFT") }}
+                        <div class="form-text">
+                            Enter ticker symbols separated by commas. Use uppercase letters only.
+                        </div>
+                        {% if form.tickers.errors %}
+                            {% for error in form.tickers.errors %}
+                                <div class="text-danger mt-1">
+                                    <small>{{ error }}</small>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.format.id }}" class="form-label">
+                            <i class="fas fa-file-alt"></i> Output Format
+                        </label>
+                        {{ form.format(class="form-select") }}
+                        <div class="form-text">
+                            Choose how you want the results displayed.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> About Sangre Signal
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    Sangre Signal is an advanced stock analysis tool that examines stocks for various risk factors including:
+                </p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-globe text-primary"></i> Country of origin analysis</li>
+                    <li><i class="fas fa-exchange-alt text-warning"></i> ADR (American Depositary Receipt) status</li>
+                    <li><i class="fas fa-chart-bar text-danger"></i> Low float detection</li>
+                    <li><i class="fas fa-percentage text-info"></i> Short interest analysis</li>
+                    <li><i class="fas fa-building text-success"></i> Institutional ownership patterns</li>
+                </ul>
+                <p class="mb-0">
+                    <small class="text-muted">
+                        Data sources: Yahoo Finance, FinViz
+                    </small>
+                </p>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-code"></i> API Usage
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    You can also use the API endpoints directly:
+                </p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Analyze Stocks</h6>
+                        <code class="d-block preformatted text-small">
+POST /api/analyze
+Content-Type: application/json
+
+{
+    "tickers": "AAPL,GOOG",
+    "format": "json"
+}
+                        </code>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Check Status</h6>
+                        <code class="d-block preformatted text-small">
+GET /api/status
+
+Response:
+{
+    "success": true,
+    "status": {...},
+    "cache_info": {...}
+}
+                        </code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

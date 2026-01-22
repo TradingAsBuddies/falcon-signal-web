@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results - Sangre Signal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-chart-line"></i> Analysis Results
+            </h2>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        
+        {% if tickers %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Analysis completed for: 
+            {% for ticker in tickers %}
+                <span class="ticker-badge">{{ ticker }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt"></i> 
+                    {{ format.title() }} Output
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if format == 'json' %}
+                    <div class="preformatted">
+                        <i class="fas fa-spinner fa-spin"></i> Results will appear here...
+                    </div>
+                {% elif format == 'csv' %}
+                    <div class="preformatted">
+                        <i class="fas fa-spinner fa-spin"></i> Results will appear here...
+                    </div>
+                {% elif format in ['claude', 'perplexity'] %}
+                    <div class="preformatted">
+                        <i class="fas fa-spinner fa-spin"></i> AI-powered analysis will appear here...
+                    </div>
+                {% else %}
+                    <div class="preformatted">
+                        <i class="fas fa-spinner fa-spin"></i> Analysis results will appear here...
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-download"></i> Export Options
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-primary" onclick="copyToClipboard()">
+                            <i class="fas fa-copy"></i> Copy to Clipboard
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-secondary" onclick="downloadResults()">
+                            <i class="fas fa-download"></i> Download as File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-redo"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-plus"></i> Analyze More Stocks
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <a href="{{ url_for('main.status') }}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-info-circle"></i> Check Status
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <button class="btn btn-outline-success w-100" onclick="shareResults()">
+                            <i class="fas fa-share"></i> Share Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simulate loading results (in a real implementation, this would be handled by the backend)
+document.addEventListener('DOMContentLoaded', function() {
+    const preformatted = document.querySelector('.preformatted');
+    if (preformatted) {
+        // Simulate a delay to show loading
+        setTimeout(function() {
+            // In a real implementation, the results would be rendered by the server
+            // For now, we'll show a placeholder
+            preformatted.innerHTML = `
+<i class="fas fa-check-circle text-success"></i> Analysis completed successfully.
+
+Note: In a production environment, the actual analysis results from sangre-signal
+would be displayed here in the selected format (${format}).
+
+The results would include:
+• Stock information (price, volume, market cap)
+• Risk analysis with severity levels
+• Company details and executives
+• Trading patterns and ownership data
+• AI-powered insights (for Claude/Perplexity formats)
+
+To see actual results, ensure the sangre-signal module is properly installed
+and configured with access to Yahoo Finance and FinViz data sources.
+            `;
+        }, 1500);
+    }
+});
+
+function copyToClipboard() {
+    const content = document.querySelector('.preformatted').textContent;
+    navigator.clipboard.writeText(content).then(function() {
+        alert('Results copied to clipboard!');
+    }).catch(function(err) {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy results');
+    });
+}
+
+function downloadResults() {
+    const content = document.querySelector('.preformatted').textContent;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sangre-signal-results.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function shareResults() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Sangre Signal Analysis Results',
+            text: 'Stock analysis results from Sangre Signal',
+            url: window.location.href
+        }).then(function() {
+            console.log('Thanks for sharing!');
+        }).catch(function(error) {
+            console.log('Error sharing:', error);
+        });
+    } else {
+        // Fallback - copy URL to clipboard
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            alert('URL copied to clipboard!');
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}System Status - Sangre Signal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-info-circle"></i> System Status
+            </h2>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        
+        {% if status %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tachometer-alt"></i> Rate Limit Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Requests Made (Last Hour)</label>
+                            <div class="progress">
+                                {% set percentage = (status.requests_made / status.max_requests * 100) if status.max_requests > 0 else 0 %}
+                                <div class="progress-bar 
+                                    {% if percentage > 80 %}
+                                        bg-danger
+                                    {% elif percentage > 60 %}
+                                        bg-warning
+                                    {% else %}
+                                        bg-success
+                                    {% endif %}" 
+                                     style="width: {{ percentage }}%">
+                                    {{ status.requests_made }} / {{ status.max_requests }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Requests Remaining</label>
+                            <h3 class="{% if status.requests_remaining < 10 %}text-danger{% else %}text-success{% endif %}">
+                                {{ status.requests_remaining }}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <div class="alert {% if status.is_limited %}alert-warning{% else %}alert-success{% endif %} mb-0">
+                                {% if status.is_limited %}
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    RATE LIMITED
+                                    {% if status.reset_in_seconds %}
+                                        (resets in {{ (status.reset_in_seconds / 60) | round(1) }} minutes)
+                                    {% endif %}
+                                {% else %}
+                                    <i class="fas fa-check-circle"></i> OK
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Usage Percentage</label>
+                            <h4 class="{{ 'text-danger' if percentage > 80 else 'text-warning' if percentage > 60 else 'text-success' }}">
+                                {{ "%.1f"|format(percentage) }}%
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if cache %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database"></i> Cache Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Cache Location</label>
+                            <p class="form-control-plaintext">{{ cache.db_path }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Cache TTL</label>
+                            <p class="form-control-plaintext">{{ "%.1f"|format(cache.ttl / 3600) }} hours</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Cache Status</label>
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle"></i> 
+                                Cache is active and storing responses
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Data Sources</label>
+                            <p class="form-control-plaintext">
+                                <i class="fab fa-yahoo text-warning"></i> Yahoo Finance<br>
+                                <i class="fas fa-chart-bar text-primary"></i> FinViz
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs"></i> System Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Web Interface</label>
+                            <div class="alert alert-success mb-0">
+                                <i class="fas fa-check-circle"></i> Running
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">sangre-signal Module</label>
+                            <div class="alert {% if cache %}alert-success{% else %}alert-danger{% endif %} mb-0">
+                                <i class="fas {% if cache %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> 
+                                {% if cache %}Available{% else %}Not Available{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Output Formats</label>
+                            <p class="form-control-plaintext">
+                                Text, JSON, CSV, Claude, Perplexity
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">API Endpoints</label>
+                            <p class="form-control-plaintext">
+                                <a href="/api/analyze" target="_blank">/api/analyze</a><br>
+                                <a href="/api/status" target="_blank">/api/status</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools"></i> Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Analyze Stocks
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <button class="btn btn-outline-warning w-100" onclick="clearCache()">
+                            <i class="fas fa-trash"></i> Clear Cache
+                        </button>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <button class="btn btn-outline-info w-100" onclick="refreshStatus()">
+                            <i class="fas fa-sync"></i> Refresh Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function clearCache() {
+    if (confirm('Are you sure you want to clear the cache? This will remove all stored data.')) {
+        // In a real implementation, this would make an API call to clear the cache
+        alert('Cache cleared successfully! (This is a placeholder - actual implementation would make an API call)');
+        location.reload();
+    }
+}
+
+function refreshStatus() {
+    location.reload();
+}
+
+// Auto-refresh status every 30 seconds
+setInterval(function() {
+    console.log('Auto-refreshing status...');
+    // In a real implementation, you might use AJAX to refresh just the status data
+}, 30000);
+</script>
+{% endblock %}
