@@ -1,9 +1,10 @@
 # Web Framework
 flask==2.3.3
-flask-wtf==1.1.1
+flask-wtf==1.2.1
+Werkzeug>=2.3.7,<3.1
 
-# Sangre Signal (from GitHub)
-git+https://github.com/anomalyco/sangre-signal.git@main
+# Sangre Signal (installed from local copy)
+./sangre-signal
 
 # Additional dependencies
 requests==2.31.0

@@ -173,6 +173,13 @@ def api_analyze():
                 'success': False
         }), 500
 
+    except Exception as e:
+        logger.exception(f"API error: {e}")
+        return jsonify({
+            'error': str(e),
+            'success': False
+        }), 500
+
 
 @main_bp.route('/health')
 def health():
@@ -183,19 +190,12 @@ def health():
         module_available = True
     except ImportError:
         module_available = False
-    
+
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.datetime.now().isoformat(),
         'module_available': module_available
     })
-            
-    except Exception as e:
-        logger.exception(f"API error: {e}")
-        return jsonify({
-            'error': str(e),
-            'success': False
-        }), 500
 
 
 @main_bp.route('/status')
