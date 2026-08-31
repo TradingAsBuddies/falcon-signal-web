@@ -28,10 +28,29 @@ Units are versioned in `./quadlet/` and installed into `~/.config/containers/sys
 **The repo is the source of truth; the systemd directory is a build artifact.**
 
 ```bash
+make image               # build the image
 make quadlet-install     # copy units, daemon-reload, validate
 make quadlet-start       # start via systemd --user
 make verify              # REQUIRED — see below
 ```
+
+### The units carry no host paths
+
+The deployment references an image by tag and keeps state in a named volume. It
+does not bind-mount a source checkout, a config file, or a certificate directory
+from the host, so the same unit is correct on every machine.
+
+An earlier revision did build on the target from a bind-mounted checkout. On a
+podman machine that checkout arrives over **9p**, and 9p produced three separate
+failures: overlayfs cannot be layered over it so `podman build` refuses outright;
+a 9p mount is owned by exactly one uid so a root-run unit cannot traverse it; and
+it is not mounted yet when units first start at boot, so the service failed every
+reboot. None of those are 9p bugs — they are the cost of reaching into the host
+from a container deployment. Build the image, ship the image.
+
+Config and secrets follow the same rule: `nginx.conf` is baked into
+`Containerfile.nginx`, and TLS material is a podman secret, not a mounted host
+directory.
 
 nginx is the old compose `production` profile. A profile has no quadlet equivalent, so it is
 a separate unit with **no `[Install]` section** — it exists but never auto-starts:
