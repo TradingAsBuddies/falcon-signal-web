@@ -1,0 +1,5 @@
+# Named podman volume. Replaces the host bind mount: a container deployment
+# should not reach into the host filesystem for its own state.
+[Volume]
+Label=project=falcon
+Label=service=signal-web

@@ -1,6 +1,6 @@
 # Makefile for sangre-signal-web
 
-.PHONY: help build run dev stop clean logs status test \
+.PHONY: help build run dev stop clean logs status test image image-nginx \
 	quadlet-install quadlet-validate quadlet-start quadlet-stop \
 	quadlet-status quadlet-logs quadlet-uninstall verify
 
@@ -18,7 +18,8 @@ help:
 	@echo "  prod      - Run in production mode with nginx"
 	@echo ""
 	@echo "Podman / systemd hosts — use these, NOT the compose targets above:"
-	@echo "  quadlet-install   - Install .container/.build units and validate them"
+	@echo "  image             - Build the app image (no source needed on the target)"
+	@echo "  quadlet-install   - Install the units and validate them"
 	@echo "  quadlet-validate  - Parse units with the quadlet generator (no deploy)"
 	@echo "  quadlet-start     - Start via systemd --user"
 	@echo "  quadlet-stop      - Stop the units"
@@ -87,30 +88,39 @@ start: build run-bg
 # The compose targets above target a DOCKER host. On a podman host compose
 # produces loose containers that systemd does not supervise: nothing restarts
 # them, nothing orders them against the network, and `systemctl` reports
-# nothing. On 2026-08-31 that is exactly what had happened here — .container
-# unit files sat in ~/.config/containers/systemd/ while `podman ps` was empty,
-# and the units were mistaken for a live deployment.
+# nothing.
 #
-# Rule: on a podman host, deploy with quadlet-install. Never `make run`.
+# The units carry NO host paths. The image is built here (or in CI) and the
+# deployment only references it by tag; state lives in a named volume. An
+# earlier version bind-mounted a source checkout into the target and built
+# there, which is what produced the 9p failures: overlayfs cannot back onto 9p,
+# a 9p mount is readable by exactly one uid, and it is not mounted when units
+# first start at boot. A container deployment should not reach into the host.
 # ─────────────────────────────────────────────────────────────────────────────
 
-QUADLET_DIR  ?= $(HOME)/.config/containers/systemd
-QUADLET_GEN  ?= /usr/libexec/podman/quadlet
-UNITS        := sangre-signal.build sangre-signal-web.container sangre-signal-nginx.container
-# Units are versioned in ./quadlet and INSTALLED into QUADLET_DIR — the repo is the source.
+QUADLET_DIR ?= $(HOME)/.config/containers/systemd
+QUADLET_GEN ?= /usr/libexec/podman/quadlet
+IMAGE       ?= localhost/sangre-signal-web:latest
+NGINX_IMAGE ?= localhost/sangre-signal-nginx:latest
+UNITS       := sangre-signal-data.volume sangre-signal-web.container sangre-signal-nginx.container
+
+image:
+	podman build --tag $(IMAGE) --file Dockerfile .
+
+image-nginx:
+	podman build --tag $(NGINX_IMAGE) --file Containerfile.nginx .
 
 quadlet-validate:
 	@command -v podman >/dev/null || { echo "podman not found — this is a docker host, use the compose targets"; exit 1; }
 	@test -x $(QUADLET_GEN) || { echo "quadlet generator missing at $(QUADLET_GEN)"; exit 1; }
-	@echo "Validating units..."
 	@out=$$($(QUADLET_GEN) -dryrun -user 2>&1); \
 	  echo "$$out" | grep -iE "error|invalid|unsupported" && { echo "VALIDATION FAILED"; exit 1; } || true; \
 	  for u in $(UNITS); do echo "$$out" | grep -q "$$u" || { echo "missing from generator output: $$u"; exit 1; }; done
 	@echo "OK — all units parse"
 
 quadlet-install:
-	@command -v podman >/dev/null || { echo "podman not found — this is a docker host, use the compose targets"; exit 1; }
-	@mkdir -p $(QUADLET_DIR) $(CURDIR)/data
+	@command -v podman >/dev/null || { echo "podman not found"; exit 1; }
+	@mkdir -p $(QUADLET_DIR)
 	install -m 0644 $(addprefix quadlet/,$(UNITS)) $(QUADLET_DIR)/
 	@systemctl --user daemon-reload
 	@$(MAKE) --no-print-directory quadlet-validate
@@ -139,8 +149,8 @@ quadlet-uninstall: quadlet-stop
 	rm -f $(addprefix $(QUADLET_DIR)/,$(UNITS))
 	systemctl --user daemon-reload
 
-# A unit file existing is not a service running. This target fails unless the
-# container is up AND answering. Do not report a deploy without it.
+# A unit file existing is not a service running. Fails unless the container is
+# up AND answering. Do not report a deploy without it.
 verify:
 	@echo "── is a container running? ──"
 	@podman ps --filter name=sangre-signal-web --format '{{.Names}} {{.Status}}' | grep -q . \

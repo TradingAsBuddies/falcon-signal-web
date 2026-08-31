@@ -1,7 +1,12 @@
-# sangre-signal-nginx — compose `profiles: [production]` has no quadlet equivalent.
-# A profile becomes a SEPARATE unit that is NOT wanted by default: install it
-# deliberately with `systemctl --user enable sangre-signal-nginx.service`.
-# Leaving [Install] out entirely is what keeps it opt-in.
+# sangre-signal-nginx — the old compose `profiles: [production]`.
+#
+# A profile has no quadlet equivalent, so this is a separate unit with NO
+# [Install] section: it exists but never auto-starts. Enable it deliberately:
+#   systemctl --user enable --now sangre-signal-nginx.service
+#
+# nginx.conf is baked into the image (see Containerfile.nginx) rather than
+# bind-mounted from the host, and TLS material is a podman secret rather than a
+# host directory. Neither belongs on the target filesystem.
 [Unit]
 Description=Sangre Signal nginx (Falcon, production profile)
 After=network-online.target sangre-signal-web.service
@@ -9,13 +14,13 @@ Wants=network-online.target
 Requires=sangre-signal-web.service
 
 [Container]
-Image=docker.io/library/nginx:alpine
+Image=localhost/sangre-signal-nginx:latest
 ContainerName=sangre-signal-nginx
 Network=falcon.network
 PublishPort=80:80
 PublishPort=443:443
-Volume=%h/Projects/falcon-signal-web/nginx.conf:/etc/nginx/nginx.conf:ro,Z
-Volume=%h/Projects/falcon-signal-web/ssl:/etc/nginx/ssl:ro,Z
+Secret=sangre-signal-tls-cert,type=mount,target=/etc/nginx/ssl/tls.crt
+Secret=sangre-signal-tls-key,type=mount,target=/etc/nginx/ssl/tls.key
 Label=project=falcon
 Label=service=signal-nginx
 
