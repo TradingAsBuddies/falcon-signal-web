@@ -31,8 +31,10 @@ ENV PYTHONPATH=/app
 EXPOSE 5000
 
 # Health check
+# curl is NOT installed in this image (only gcc and git are), so the original
+# `CMD curl -f ...` healthcheck could never pass. python is always present.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/status || exit 1
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:5000/status', timeout=5).status==200 else 1)" || exit 1
 
 # Run the application with gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "run:app"]

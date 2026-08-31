@@ -3,8 +3,11 @@ flask==2.3.3
 flask-wtf==1.2.1
 Werkzeug>=2.3.7,<3.1
 
-# Sangre Signal (installed from local copy)
-./sangre-signal
+# Sangre Signal — installed from GitHub.
+# The old ./sangre-signal local path pointed at an empty directory (broken since
+# 92b2607); the earlier anomalyco/ URL no longer resolves. This is the current
+# public repo.
+git+https://github.com/TradingAsBuddies/sangre-signal.git@main
 
 # Additional dependencies
 requests==2.31.0
