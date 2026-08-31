@@ -1,0 +1,24 @@
+# sangre-signal-nginx — compose `profiles: [production]` has no quadlet equivalent.
+# A profile becomes a SEPARATE unit that is NOT wanted by default: install it
+# deliberately with `systemctl --user enable sangre-signal-nginx.service`.
+# Leaving [Install] out entirely is what keeps it opt-in.
+[Unit]
+Description=Sangre Signal nginx (Falcon, production profile)
+After=network-online.target sangre-signal-web.service
+Wants=network-online.target
+Requires=sangre-signal-web.service
+
+[Container]
+Image=docker.io/library/nginx:alpine
+ContainerName=sangre-signal-nginx
+Network=falcon.network
+PublishPort=80:80
+PublishPort=443:443
+Volume=%h/Projects/falcon-signal-web/nginx.conf:/etc/nginx/nginx.conf:ro,Z
+Volume=%h/Projects/falcon-signal-web/ssl:/etc/nginx/ssl:ro,Z
+Label=project=falcon
+Label=service=signal-nginx
+
+[Service]
+Restart=always
+RestartSec=5

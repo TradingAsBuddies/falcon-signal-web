@@ -1,0 +1,15 @@
+# sangre-signal.build — replaces compose's `build: .`
+# Quadlet has no build step inside .container; a .build unit produces the image
+# that sangre-signal-web.container then references by tag.
+[Unit]
+Description=Build sangre-signal web image
+
+[Build]
+ImageTag=localhost/sangre-signal-web:latest
+File=%h/Projects/falcon-signal-web/Dockerfile
+SetWorkingDirectory=%h/Projects/falcon-signal-web
+Label=project=falcon
+Label=service=signal-web
+
+[Install]
+WantedBy=default.target

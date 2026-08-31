@@ -1,0 +1,36 @@
+# sangre-signal-web — converted from Projects/falcon-signal-web/docker-compose.yml
+#
+# compose -> quadlet notes:
+#   build: .              -> sangre-signal.build produces the tag; Image= consumes it
+#   ./data:/app/data      -> absolute path via %h + :Z (SELinux relabel; compose omitted it)
+#   restart: unless-stopped -> [Service] Restart=always
+#   healthcheck:          -> HealthCmd/HealthInterval/HealthTimeout/HealthRetries/HealthStartPeriod
+[Unit]
+Description=Sangre Signal Web (Falcon)
+After=network-online.target sangre-signal-build.service
+Wants=network-online.target
+Requires=sangre-signal-build.service
+
+[Container]
+Image=localhost/sangre-signal-web:latest
+ContainerName=sangre-signal-web
+Network=falcon.network
+PublishPort=5000:5000
+Volume=%h/Projects/falcon-signal-web/data:/app/data:Z
+Environment=FLASK_ENV=production
+Environment=PORT=5000
+HealthCmd=curl -f http://localhost:5000/status
+HealthInterval=30s
+HealthTimeout=10s
+HealthRetries=3
+HealthStartPeriod=40s
+Label=project=falcon
+Label=service=signal-web
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target default.target
